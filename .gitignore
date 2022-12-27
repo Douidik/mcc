@@ -1,0 +1,3 @@
+.*/
+build*/*
+cmake/cpm_*.cmake
