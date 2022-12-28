@@ -22,11 +22,13 @@ public:
   Node(State state, size_t index);
 
   auto submit(std::string_view expr, size_t index) const -> size_t;
+  auto members() -> Set;
   auto end() const -> const Node *;
   auto concat(Node *node) -> Node *;
   auto map(u32 base) -> u32;
   auto merge(Node *node) -> Node *;
   auto push(Node *node) -> Node *;
+  auto insert(Node *node) -> Node *;
 
   auto index() const -> u32 {
     return m_index;
@@ -65,8 +67,6 @@ public:
   }
 
 private:
-  auto insert(Node *node) -> Node *;
-
   State m_state;
   u32 m_index;
   Set m_edges;

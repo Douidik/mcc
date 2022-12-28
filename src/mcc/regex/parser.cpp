@@ -18,13 +18,10 @@ auto Parser::parse() -> Node * {
   }
 
   for (size_t i = 1; i < m_sequences.size(); i++) {
-    m_sequences[0]->merge(m_sequences[i]);
+    m_sequences.front()->merge(m_sequences[i]);
   }
 
-  if (!m_sequences.empty()) {
-    return m_sequences[0];
-  }
-  return {};
+  return !m_sequences.empty() ? m_sequences.front() : nullptr;
 }
 
 auto Parser::parse_new_token() -> Node * {
@@ -57,6 +54,7 @@ auto Parser::parse_new_token() -> Node * {
   case '?': return parse_quest();
   case '*': return parse_star();
   case '+': return parse_plus();
+  case '~': return parse_wave();
 
   case '}': throw exception("unmatched sequence brace, missing <{> operator");
   case ']': throw exception("unmatched set brace, missing <[> operator");
@@ -199,7 +197,8 @@ auto Parser::parse_star() -> Node * {
   //   > $'
   auto head = m_stack.push(Epsilon{}, 0);
 
-  head->merge(parse_pre_op('*'))->concat(head);
+  head->merge(parse_pre_op('*'));
+  head->concat(head);
   head->push(m_stack.push(Epsilon{}));
 
   return head;
@@ -209,6 +208,18 @@ auto Parser::parse_plus() -> Node * {
   // $ > e > $
   auto head = parse_pre_op('+');
   return head->concat(head);
+}
+
+auto Parser::parse_wave() -> Node * {
+  //   > o
+  // $
+  //   > ^ > $
+  auto head = m_stack.push(Epsilon{}, 0);
+
+  head->merge(parse_post_op('~'));
+  head->push(m_stack.push(Any{}))->push(head);
+
+  return head;
 }
 
 auto Parser::exception(std::string_view desc) -> Exception {

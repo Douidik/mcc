@@ -36,20 +36,30 @@ auto Node::end() const -> const Node * {
   return end;
 }
 
-auto Node::concat(Node *node) -> Node * {
+auto Node::members() -> Set {
+  Set set{this};
+
   for (Node *edge : m_edges) {
-    if (edge->index() > index()) edge->concat(node);
+    if (edge->index() > index()) set.merge(edge->members());
   }
 
-  return !branch() ? insert(node) : node;
+  return set;
+}
+
+auto Node::concat(Node *node) -> Node * {
+  for (auto member : members()) {
+    if (!member->branch()) member->insert(node);
+  }
+
+  return node;
 }
 
 auto Node::map(u32 base) -> u32 {
-  for (Node *edge : m_edges) {
-    if (edge->index() > index()) edge->map(base);
+  for (auto member : members()) {
+    member->m_index += base;
   }
 
-  return m_index = base + m_index;
+  return base;
 }
 
 auto Node::merge(Node *node) -> Node * {

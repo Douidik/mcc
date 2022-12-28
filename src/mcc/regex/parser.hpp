@@ -20,7 +20,7 @@ private:
   auto parse_binary_op(char op) -> std::pair<Node *, Node *>;
   auto parse_pre_op(char op) -> Node *;
   auto parse_post_op(char op) -> Node *;
-
+  
   auto parse_set(std::string_view set) -> Node *;
   auto parse_range() -> Node *;
   auto parse_any() -> Node *;
@@ -32,6 +32,7 @@ private:
   auto parse_quest() -> Node *;
   auto parse_star() -> Node *;
   auto parse_plus() -> Node *;
+  auto parse_wave() -> Node *;
 
   auto exception(std::string_view desc) -> Exception;
 

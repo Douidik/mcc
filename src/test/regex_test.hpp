@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 
 namespace mcc::regex {
+using namespace std::string_view_literals;
 using namespace literals;
 
 constexpr std::string_view LOREM_IPSUM = R"(
@@ -39,8 +40,17 @@ TEST(Regex, Text) {
   EXPECT_TRUE("'hello\nworld'"_rx.match("hello\nworld"));
   EXPECT_TRUE(Regex(quoted(LOREM_IPSUM)).match(LOREM_IPSUM));
 
+  EXPECT_TRUE("`abc`"_rx.match("abc"));
+  EXPECT_TRUE("`abc`"_rx.match("abcccccccccc"));
+  EXPECT_TRUE("`hello` ` ` `world`"_rx.match("hello world"));
+  EXPECT_TRUE("`hello\nworld`"_rx.match("hello\nworld"));
+
+  EXPECT_THROW("`hello'"_rx, Exception);
+  EXPECT_THROW("'hello`"_rx, Exception);
   EXPECT_THROW("'hello"_rx, Exception);
   EXPECT_THROW("hello'"_rx, Exception);
+  EXPECT_THROW("hello`"_rx, Exception);
+  EXPECT_THROW("`hello"_rx, Exception);
   EXPECT_THROW("hello"_rx, Exception);
 
   EXPECT_FALSE("'cba'"_rx.match("abc"));
@@ -50,6 +60,26 @@ TEST(Regex, Text) {
 }
 
 TEST(Regex, Range) {
+  EXPECT_EQ("[0-9]+"_rx.match("0123456789").view(), "0123456789"sv);
+  EXPECT_EQ("[a-f]+"_rx.match("abcedef").view(), "abcedef"sv);
+  EXPECT_EQ("[a-a]+"_rx.match("aaaaaaa").view(), "aaaaaaa"sv);
+  EXPECT_EQ("[[-]]+"_rx.match("[\\]").view(), "[\\]"sv);
+  EXPECT_EQ("[---]+"_rx.match("--").view(), "--"sv);
+  
+  EXPECT_FALSE("[a-z]"_rx.match("`"));
+  EXPECT_FALSE("[a-z]"_rx.match("{"));
+
+  EXPECT_THROW("["_rx, Exception);  
+  EXPECT_THROW("[0"_rx, Exception);
+  EXPECT_THROW("[0-"_rx, Exception);
+  EXPECT_THROW("[0-9"_rx, Exception);
+  EXPECT_THROW("]"_rx, Exception);
+  EXPECT_THROW("9]"_rx, Exception);
+  EXPECT_THROW("-9]"_rx, Exception);
+  EXPECT_THROW("0-9]"_rx, Exception);
+}
+
+TEST(Regex, Set) {
   EXPECT_TRUE("_"_rx.match("\n"));
   EXPECT_TRUE("a"_rx.match("a"));
   EXPECT_TRUE("o"_rx.match("+"));
@@ -128,6 +158,21 @@ TEST(Regex, Or) {
   EXPECT_THROW("{}|'b'"_rx, Exception);
   EXPECT_THROW("'a'|"_rx, Exception);
   EXPECT_THROW("|'b'"_rx, Exception);
+}
+
+TEST(Regex, Wave) {
+  EXPECT_TRUE("~'c'"_rx.match("abc"));
+  EXPECT_TRUE("'a'~'z'"_rx.match("ahjklz"));
+  EXPECT_EQ(
+    "'//' ~ '//'"_rx.match("// The program starts here // int main() {").view(),
+    "// The program starts here //"sv);
+  EXPECT_TRUE("'0' ~ {'z'|'9'}"_rx.match("0123456789"));
+  EXPECT_TRUE("'0' ~ {'z'|'9'}"_rx.match("012345678z"));
+
+  EXPECT_THROW("~"_rx, Exception);
+  EXPECT_THROW("a~"_rx, Exception);
+  EXPECT_THROW("~{}"_rx, Exception);
+  EXPECT_THROW("{}~"_rx, Exception);
 }
 
 }  // namespace mcc::regex
