@@ -9,6 +9,7 @@ class Node;
 
 struct Epsilon {};
 struct Any {};
+struct None {};
 struct Not {
   Node *sequence;
 };
@@ -28,6 +29,7 @@ struct Range {
 enum class Option : u32 {
   Epsilon,
   Any,
+  None,
   Not,
   Dash,
   Text,
@@ -35,7 +37,7 @@ enum class Option : u32 {
   Range,
 };
 
-using Variant = std::variant<Epsilon, Any, Not, Dash, Text, Set, Range>;
+using Variant = std::variant<Epsilon, Any, None, Not, Dash, Text, Set, Range>;
 
 struct State {
 public:
@@ -47,6 +49,7 @@ public:
   }
 
   auto submit(std::string_view expr, size_t index) const -> size_t;
+  auto size() const -> size_t;
   auto option() const -> Option;
   auto has(Option option) const -> bool;
 

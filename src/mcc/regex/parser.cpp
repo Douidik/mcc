@@ -18,14 +18,14 @@ auto Parser::parse() -> Node * {
   }
 
   for (size_t i = 1; i < m_sequences.size(); i++) {
-    m_sequences.front()->merge(m_sequences[i]);
+    m_sequences[0]->merge(m_sequences[i]);
   }
 
-  return !m_sequences.empty() ? m_sequences.front() : nullptr;
+  return !m_sequences.empty() ? m_sequences[0] : nullptr;
 }
 
 auto Parser::parse_new_token() -> Node * {
-  if (m_token > m_src.end() - 1) {
+  if (m_token >= m_src.end()) {
     return {};
   }
 
@@ -47,6 +47,7 @@ auto Parser::parse_new_token() -> Node * {
   case '[': return parse_range();
   case '^': return parse_any();
   case '!': return parse_not();
+  case '/': return parse_dash();
   case '\'': return parse_text('\'');
   case '`': return parse_text('`');
   case '{': return parse_sequence();
@@ -90,7 +91,7 @@ auto Parser::parse_pre_op(char op) -> Node * {
     throw exception(fmt::format("missing pre-operand for <{}> operator", op));
   }
 
-  auto operand = m_sequences.back();
+  Node *operand = m_sequences.back();
   m_sequences.pop_back();
   return operand;
 }
@@ -163,6 +164,7 @@ auto Parser::parse_not() -> Node * {
   o: unary operand
   $: epsilon
   ^: any
+  x: none
   >: edge
 */
 
@@ -211,15 +213,26 @@ auto Parser::parse_plus() -> Node * {
 }
 
 auto Parser::parse_wave() -> Node * {
-  //   > o
+  //   > b
   // $
-  //   > ^ > $
-  auto head = m_stack.push(Epsilon{}, 0);
+  //   > a > $
+  //       > x
 
-  head->merge(parse_post_op('~'));
-  head->push(m_stack.push(Any{}))->push(head);
+  auto [a, b] = parse_binary_op('~');
+
+  auto head = m_stack.push(Epsilon{}, 0);
+  head->push(b);
+  head->push(a)->concat(head);
+  a->merge(m_stack.push(None{}));
 
   return head;
+
+  // auto head = m_stack.push(Epsilon{}, 0);
+
+  // head->merge(parse_post_op('~'));
+  // head->push(m_stack.push(Any{}))->push(head);
+
+  // return head;
 }
 
 auto Parser::exception(std::string_view desc) -> Exception {

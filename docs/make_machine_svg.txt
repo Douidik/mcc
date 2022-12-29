@@ -1,0 +1,204 @@
+// main.cpp
+#include "regex/format.hpp"
+#include "scan/syntax_map.hpp"
+
+namespace mcc {
+
+void machine() {
+  size_t i = 0;
+  for (const auto &[trait, regex] : syntax_ansi()) {
+    auto filepath = fmt::format("graphs/{}{}.graph", i++, trait_name(trait));
+    FILE *fp = fopen(filepath.data(), "w");
+    if (!fp) {
+      throw Exception("machine", "can't open filestream w to '{}'", filepath);
+    }
+    auto fmt = fmt::format("{{:{}}}\n", trait_name(trait));
+    fmt::print(fp, fmt::runtime(fmt), regex);
+    fclose(fp);
+  }
+}
+
+}  // namespace mcc
+
+int main(int argc, char **argv) {
+  mcc::machine();
+}
+
+// > cat *.graph > all.graph
+
+// generate.m4
+strict digraph {
+	define(`strict',`')
+	define(`digraph',`subgraph')
+
+	rankdir=BT
+	ordering="out"
+
+	"Blank"
+	"CommentSL" 
+	"CommentML"
+	"BadComment"
+	"Directive"
+	"Sizeof"
+	"Star"
+	"KwAuto"
+	"KwDouble"
+	"KwChar"
+	"KwFloat"
+	"KwInt"
+	"KwLong"
+	"KwShort"
+	"KwVoid"
+	"KwEnum"
+	"KwTypedef"
+	"KwUnion"
+	"KwStruct"
+	"KwVolatile"
+	"KwConst"
+	"KwExtern"
+	"KwRegister"
+	"KwStatic"
+	"KwSigned"
+	"KwUnsigned"
+	"KwBreak"
+	"KwCase"
+	"KwContinue"
+	"KwDefault"
+	"KwDo"
+	"KwElse"
+	"KwFor"
+	"KwGoto"
+	"KwIf"
+	"KwReturn"
+	"KwSwitch"
+	"KwWhile"
+	"CurlyBegin"
+	"CurlyClose"
+	"ParenBegin"
+	"ParenClose"
+	"CrochetBegin"
+	"CrochetClose"
+	"Increment"
+	"Decrement"
+	"Integer"
+	"Float"
+	"Identifier"
+	"Integer"
+	"String"
+	"BadString"
+	"Char"
+	"BadChar"
+	"Semicolon"
+	"Comma"
+	"And"
+	"Or"
+	"Dot"
+	"Arrow"
+	"BinNot"
+	"BinOr"
+	"BinXor"
+	"BinShiftL"
+	"BinShiftR"
+	"Add"
+	"Sub"
+	"Div"
+	"Mod"
+	"Equal"
+	"NotEq"
+	"LessEq"
+	"GreaterEq"
+	"Less"
+	"Greater"
+	"Not"
+	"Assign"
+	"Ampersand"
+	"None"
+	
+	machine[label="syntax map"]
+	machine[shape="underline"]
+	
+	machine -> "Blank" [style="invis"]
+	machine -> "CommentSL" [style="invis"]
+	machine -> "CommentML"[style="invis"]
+	machine -> "BadComment"[style="invis"]
+	machine -> "Directive"[style="invis"]
+	machine -> "Sizeof"[style="invis"]
+	machine -> "Star"[style="invis"]
+	machine -> "KwAuto"[style="invis"]
+	machine -> "KwDouble"[style="invis"]
+	machine -> "KwChar"[style="invis"]
+	machine -> "KwFloat"[style="invis"]
+	machine -> "KwInt"[style="invis"]
+	machine -> "KwLong"[style="invis"]
+	machine -> "KwShort"[style="invis"]
+	machine -> "KwVoid"[style="invis"]
+	machine -> "KwEnum"[style="invis"]
+	machine -> "KwTypedef"[style="invis"]
+	machine -> "KwUnion"[style="invis"]
+	machine -> "KwStruct"[style="invis"]
+	machine -> "KwVolatile"[style="invis"]
+	machine -> "KwConst"[style="invis"]
+	machine -> "KwExtern"[style="invis"]
+	machine -> "KwRegister"[style="invis"]
+	machine -> "KwStatic"[style="invis"]
+	machine -> "KwSigned"[style="invis"]
+	machine -> "KwUnsigned"[style="invis"]
+	machine -> "KwBreak"[style="invis"]
+	machine -> "KwCase"[style="invis"]
+	machine -> "KwContinue"[style="invis"]
+	machine -> "KwDefault"[style="invis"]
+	machine -> "KwDo"[style="invis"]
+	machine -> "KwElse"[style="invis"]
+	machine -> "KwFor"[style="invis"]
+	machine -> "KwGoto"[style="invis"]
+	machine -> "KwIf"[style="invis"]
+	machine -> "KwReturn"[style="invis"]
+	machine -> "KwSwitch"[style="invis"]
+	machine -> "KwWhile"[style="invis"]
+	machine -> "CurlyBegin"[style="invis"]
+	machine -> "CurlyClose"[style="invis"]
+	machine -> "ParenBegin"[style="invis"]
+	machine -> "ParenClose"[style="invis"]
+	machine -> "CrochetBegin"[style="invis"]
+	machine -> "CrochetClose"[style="invis"]
+	machine -> "Increment"[style="invis"]
+	machine -> "Decrement"[style="invis"]
+	machine -> "Integer"[style="invis"]
+	machine -> "Float"[style="invis"]
+	machine -> "Identifier"[style="invis"]
+	machine -> "Integer"[style="invis"]
+	machine -> "String"[style="invis"]
+	machine -> "BadString"[style="invis"]
+	machine -> "Char"[style="invis"]
+	machine -> "BadChar"[style="invis"]
+	machine -> "Semicolon"[style="invis"]
+	machine -> "Comma"[style="invis"]
+	machine -> "And"[style="invis"]
+	machine -> "Or"[style="invis"]
+	machine -> "Dot"[style="invis"]
+	machine -> "Arrow"[style="invis"]
+	machine -> "BinNot"[style="invis"]
+	machine -> "BinOr"[style="invis"]
+	machine -> "BinXor"[style="invis"]
+	machine -> "BinShiftL"[style="invis"]
+	machine -> "BinShiftR"[style="invis"]
+	machine -> "Add"[style="invis"]
+	machine -> "Sub"[style="invis"]
+	machine -> "Div"[style="invis"]
+	machine -> "Mod"[style="invis"]
+	machine -> "Equal"[style="invis"]
+	machine -> "NotEq"[style="invis"]
+	machine -> "LessEq"[style="invis"]
+	machine -> "GreaterEq"[style="invis"]
+	machine -> "Less"[style="invis"]
+	machine -> "Greater"[style="invis"]
+	machine -> "Not"[style="invis"]
+	machine -> "Assign"[style="invis"]
+	machine -> "Ampersand"[style="invis"]
+	machine -> "None"[style="invis"]
+
+	include(all.graph)	
+}
+
+// > m4 generate.m4 | dot -Tdot | dot -Tsvg > machine.svg
+// Then copy the machine into the 'docs/' folder

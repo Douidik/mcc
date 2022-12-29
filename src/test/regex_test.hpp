@@ -1,5 +1,5 @@
-#ifndef MCC_TEST_REGEX_HPP
-#define MCC_TEST_REGEX_HPP
+#ifndef MCC_REGEX_TEST_HPP
+#define MCC_REGEX_TEST_HPP
 
 #include "regex/regex.hpp"
 #include <gtest/gtest.h>
@@ -161,14 +161,16 @@ TEST(Regex, Or) {
 }
 
 TEST(Regex, Wave) {
-  EXPECT_TRUE("~'c'"_rx.match("abc"));
-  EXPECT_TRUE("'a'~'z'"_rx.match("ahjklz"));
+  EXPECT_TRUE("^~'c'"_rx.match("abc"));
+  EXPECT_TRUE("a~'z'"_rx.match("ahjklz"));
   EXPECT_EQ(
-    "'//' ~ '//'"_rx.match("// The program starts here // int main() {").view(),
+    "'//' {a|' '} ~ '//'"_rx.match("// The program starts here // int main() {").view(),
     "// The program starts here //"sv);
-  EXPECT_TRUE("'0' ~ {'z'|'9'}"_rx.match("0123456789"));
-  EXPECT_TRUE("'0' ~ {'z'|'9'}"_rx.match("012345678z"));
-
+  EXPECT_TRUE("n ~ {'z'|'9'}"_rx.match("0123456789"));
+  EXPECT_TRUE("n ~ {'z'|'9'}"_rx.match("012345678z"));
+  EXPECT_TRUE("{' '} ~ 'sus'"_rx.match("                           sus               "));
+  EXPECT_FALSE("{' '} ~ 'sus'"_rx.match("            |             sus               "));
+  
   EXPECT_THROW("~"_rx, Exception);
   EXPECT_THROW("a~"_rx, Exception);
   EXPECT_THROW("~{}"_rx, Exception);

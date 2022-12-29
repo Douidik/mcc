@@ -11,6 +11,7 @@ namespace mcc {
 class Exception : public std::exception {
 public:
   Exception(std::string_view name, std::string_view fmt, auto... args) :
+    m_name(name),
     m_buffer(fmt::format(fmt::runtime(fmt), args...)) {}
 
   auto what() const noexcept -> const char * override {

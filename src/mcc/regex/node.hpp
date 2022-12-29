@@ -58,14 +58,10 @@ public:
     return !m_edges.empty() and max_edge()->index() > m_index;
   }
 
-  auto ok() const -> bool {
-    return !m_state.has(Option::Any) and !branch();
-  }
-
   auto operator<=>(const Node &rhs) const {
     return index() <=> rhs.index();
   }
-
+  
 private:
   State m_state;
   u32 m_index;

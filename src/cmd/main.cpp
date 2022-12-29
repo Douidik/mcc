@@ -1,33 +1,81 @@
 #include "regex/format.hpp"
-#include "regex/regex.hpp"
+#include "scan/lexer.hpp"
+#include <fmt/format.h>
+#include <fstream>
 
 using namespace mcc::literals;
 
-int main(int argc, char **argv) {
-  // auto regex =
-  //   "{'+' | '-'}*"
-  //   "{{'0b'|'0B'} {[0-1]}+                     } |"
-  //   "{{'0x'|'0X'} {[0-9]|[a-f]|[A-F]}+         } |"
-  //   "{            {[0-9]}+                     } |"
-  //   "a*"_rx;
-
-  // auto match = regex.match(argv[1]);
-
-  // fmt::print("{}\n", regex);
-  // fmt::print("'{}' => '{}'\n", match.expr(), match.view());
-  auto regex =
-    "{'+' | '-'}*"
-    "{{'0b'|'0B'} {[0-1]}*                     '.' {[0-1]}*                    } |"
-    "{{'0x'|'0X'} {[0-9]|[a-f]|[A-F]}* '.' {[0-9]|[a-f]|[A-F]}*                } |"
-    "{            {[0-9]}*                     '.' {[0-9]}*                    }  "
-    "{{'e' | 'E'}  {'+' | '-'}? [0-9]+}?"
-    "a*"_rx;
-  // auto regex = "'a'* 'b'* a*"_rx;
+// int main(int argc, char **argv) {
+//   auto regex = "{' '} ~ 'sus'"_rx;
   
-  if (argc > 1) {
-    auto match = regex.match(argv[1]);
-    fmt::print("{} => {}\n", match.expr(), match.view());
-  } else {
-    fmt::print("{}\n", regex);
+//   // auto regex = "'#' !{'\n'}*"_rx;
+//   fmt::print("{}\n", regex);
+
+// //   auto expr = R"("
+// // #define new(n)\
+// // malloc(n)
+// // ")";
+
+//   auto expr = R"("Hello world\"" //the next expression)";
+//   auto match = regex.match(expr);
+//   fmt::print("/* {} => {} */", match.expr(), match.view());
+// }
+
+// void dump_tokens(mcc::Lexer &lexer) {
+//   auto [expr, trait] = lexer.tokenize();
+//   fmt::print("{:>30} : {}\n", expr, mcc::trait_name(trait));
+
+//   if (trait != mcc::trait::End) {
+//     dump_tokens(lexer);
+//   }
+// }
+
+// int main(int argc, char **argv) {
+//   if (argc < 2) {
+//     fmt::print("mcc - micro c compiler\n");
+//     return 0;
+//   }
+
+//   try {
+//     std::fstream fstream{argv[1]};
+//     if (!fstream) {
+//       throw mcc::Exception{"fs exception", "can't read file from '{}'", argv[1]};
+//     }
+//     std::string src{
+//       std::istreambuf_iterator<char>(fstream),
+//       std::istreambuf_iterator<char>(),
+//     };
+
+//     mcc::Lexer lexer{src, mcc::syntax_ansi()};
+//     dump_tokens(lexer);
+//   } catch (const mcc::Exception &exception) {
+//     fmt::print(stderr, "Mcc {} {}\n", exception.name(), exception.what());
+//   } catch (const std::exception &exception) {
+//     fmt::print(stderr, "{}\n", exception.what());
+//   }
+// }
+
+#include "regex/format.hpp"
+#include "scan/syntax_map.hpp"
+
+namespace mcc {
+
+void machine() {
+  size_t i = 0;
+  for (const auto &[trait, regex] : syntax_ansi()) {
+    auto filepath = fmt::format("graphs/{}{}.graph", i++, trait_name(trait));
+    FILE *fp = fopen(filepath.data(), "w");
+    if (!fp) {
+      throw Exception("machine", "can't open filestream w to '{}'", filepath);
+    }
+    auto fmt = fmt::format("{{:{}}}\n", trait_name(trait));
+    fmt::print(fp, fmt::runtime(fmt), regex);
+    fclose(fp);
   }
+}
+
+}  // namespace mcc
+
+int main(int argc, char **argv) {
+  mcc::machine();
 }

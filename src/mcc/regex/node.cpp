@@ -13,14 +13,14 @@ auto Node::submit(std::string_view expr, size_t index) const -> size_t {
   auto match = m_state.submit(expr, index);
 
   if (match != npos()) {
-    if (ok() and match >= expr.size()) return match;
+    if (!branch() and match >= expr.size()) return match;
 
     for (const Node *edge : m_edges) {
       auto match_fwd = edge->submit(expr, match);
       if (match_fwd != npos()) return match_fwd;
     }
 
-    if (ok()) return match;
+    if (!branch()) return match;
   }
 
   return npos();

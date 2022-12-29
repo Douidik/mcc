@@ -6,14 +6,19 @@
 #include "state.hpp"
 #include <algorithm>
 #include <fmt/format.h>
+#include <utility>
 
 namespace fmt {
 using namespace mcc::regex;
 
 template<>
 struct formatter<Regex> {
+  std::string_view name = "";
+
   constexpr auto parse(format_parse_context &ctx) {
-    return ctx.begin();
+    auto end = std::find(ctx.begin(), ctx.end(), '}');
+    name = std::string_view{ctx.begin(), end};
+    return end;
   }
 
   constexpr auto format(const Regex &regex, auto &ctx) {
@@ -23,7 +28,7 @@ struct formatter<Regex> {
       auto header = R"(rankdir=LR;bgcolor="#F9F9F9";compound=true)";
       auto head_ptr = ptr(regex.head());
       auto head_state = regex.head()->state();
-      auto start = Raw{regex.src(), 2};
+      auto start = Raw{name != "" ? name : regex.src(), 2};
 
       format_to(ctx.out(), "{}\n", header);
       format_to(ctx.out(), R"("{}" [shape="none"]{})", start, '\n');
@@ -43,7 +48,7 @@ struct formatter<Node> {
 
   auto define(const Node &node, auto &ctx) {
     constexpr auto fmt = R"("{}" [shape="{}",label="{}"]{})";
-    auto shape = node.ok() ? "circle" : "square";
+    auto shape = node.branch() ? "square" : "circle";
     return format_to(ctx.out(), fmt, ptr(&node), shape, node.index(), '\n');
   }
 
@@ -82,13 +87,13 @@ struct formatter<Node> {
   constexpr auto format(const Node &node, auto &ctx) {
     switch (node.state().option()) {
     case Option::Not: {
-      auto [sequence] = std::get<Not>(node.state().variant());
+      auto [sequence] = std::get<regex::Not>(node.state().variant());
       auto header = R"(style=filled;bgcolor="#FBF3F3")";
       return format_subgraph(node, *sequence, header, '/', ctx);
     } break;
 
     case Option::Dash: {
-      auto [sequence] = std::get<Dash>(node.state().variant());
+      auto [sequence] = std::get<regex::Dash>(node.state().variant());
       auto header = R"(style=filled;bgcolor="#F4FDFF")";
       return format_subgraph(node, *sequence, header, '/', ctx);
     } break;
@@ -110,6 +115,7 @@ struct formatter<State> {
     switch (state.option()) {
     case Option::Epsilon: return format_to(ctx.out(), "&Sigma;");
     case Option::Any: return format_to(ctx.out(), "&alpha;");
+    case Option::None: return format_to(ctx.out(), "&times;");
     case Option::Not: return format_to(ctx.out(), "!");
     case Option::Dash: return format_to(ctx.out(), "/");
 

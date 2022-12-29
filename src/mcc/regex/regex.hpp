@@ -9,11 +9,13 @@ namespace mcc::regex {
 
 class Regex {
 public:
-  Regex(const char *src) : Regex{std::string_view(src)} {}
+  Regex(const Regex &) = delete;
+  Regex &operator=(const Regex &) = delete;
 
   Regex(std::string_view src) : m_src(src), m_stack() {
     m_head = Parser{src, m_stack}.parse();
   }
+  Regex(const char *src) : Regex{std::string_view(src)} {}
 
   auto head() const -> const Node * {
     return m_head;

@@ -31,15 +31,15 @@ struct formatter<Raw> {
 
   constexpr auto format_char(const char &c, size_t depth, auto &context) {
     switch (c) {
-    case '\t': return format_escape_sequence(R"(\t)", depth, context);
-    case '\v': return format_escape_sequence(R"(\v)", depth, context);
-    case '\0': return format_escape_sequence(R"(\0)", depth, context);
-    case '\b': return format_escape_sequence(R"(\b)", depth, context);
-    case '\f': return format_escape_sequence(R"(\f)", depth, context);
-    case '\n': return format_escape_sequence(R"(\n)", depth, context);
-    case '\r': return format_escape_sequence(R"(\r)", depth, context);
-    case '\\': return format_escape_sequence(R"(\\)", depth, context);
-    case '\"': return format_escape_sequence(R"(\")", depth, context);
+    case '\t': return format_escape_sequence("t", depth, context);
+    case '\v': return format_escape_sequence("v", depth, context);
+    case '\0': return format_escape_sequence("0", depth, context);
+    case '\b': return format_escape_sequence("b", depth, context);
+    case '\f': return format_escape_sequence("f", depth, context);
+    case '\n': return format_escape_sequence("n", depth, context);
+    case '\r': return format_escape_sequence("r", depth, context);
+    case '\\': return format_escape_sequence("\\", depth, context);
+    case '\"': return format_escape_sequence("\\\"", depth, context);
 
     default: return format_to(context.out(), "{}", c);
     }

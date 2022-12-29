@@ -13,6 +13,7 @@ auto State::submit(std::string_view expr, size_t index) const -> size_t {
   switch (option) {
   case Option::Epsilon: return index;
   case Option::Any: return index + 1;
+  case Option::None: return npos();
 
   case Option::Dash: {
     auto match = std::get<Dash>(m_variant).sequence->submit(expr, index);

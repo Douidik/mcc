@@ -1,3 +1,4 @@
+#include "lexer_test.hpp"
 #include "regex_test.hpp"
 #include <gtest/gtest.h>
 
