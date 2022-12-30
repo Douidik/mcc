@@ -1,6 +1,6 @@
 #include "lexer.hpp"
+#include "code_exception.hpp"
 #include "trait.hpp"
-#include <algorithm>
 
 namespace mcc {
 using namespace trait;
@@ -37,26 +37,7 @@ auto Lexer::match() -> Token {
 }
 
 auto Lexer::exception(std::string_view desc, Token token) -> Exception {
-  auto line = std::count(m_src.begin(), token.expr.begin(), '\n');
-  auto rbegin = std::find(token.expr.rend(), m_src.rend(), '\n');
-  auto begin = std::max(rbegin.base(), m_src.begin());
-  auto end = std::find(token.expr.end(), m_src.end(), '\n');
-  auto cursor = token.expr.begin() - begin + 1;
-
-  return Exception{
-    "lexer exception",
-    R"(with {{
-  {} | {}
-     {:>{}}{:^>{}} {}
-}})",
-    line,
-    std::string_view{begin, end},
-    "",
-    cursor,
-    "",
-    token.expr.size(),
-    desc,
-  };
+  return code_exception("lexer exception", desc, m_src, token);
 }
 
 auto Lexer::dummy_token() -> Token {

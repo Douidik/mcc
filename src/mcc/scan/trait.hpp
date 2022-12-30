@@ -114,6 +114,7 @@ enum TraitEnum : u32 {
   String = define<CsConstant, GpNone, 2>(),
   Char = define<CsConstant, GpNone, 3>(),
 
+  Query = define<CsOperator, GpFlow, 0>(),
   Increment = define<CsOperator, GpNone, 0>(),
   Decrement = define<CsOperator, GpNone, 1>(),
   CurlyBegin = define<CsOperator, GpBracket, 0>(),

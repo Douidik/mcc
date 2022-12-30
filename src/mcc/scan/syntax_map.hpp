@@ -10,6 +10,17 @@ using namespace trait;
 
 using SyntaxMap = std::span<const std::pair<u32, Regex>>;
 
+// TODO: implement trigraphs
+// ??=      #
+// ??(      [
+// ??/      \
+  // ??)      ]
+// ??'      ^
+// ??<      {
+// ??!      |
+// ??>      }
+// ??-      ~
+
 static auto syntax_ansi() -> SyntaxMap {
   static const std::pair<u32, Regex> map[]{
     {Blank, "{_|'@'}+"},
@@ -90,6 +101,7 @@ static auto syntax_ansi() -> SyntaxMap {
     {BadChar, "'L'? q"},
     {Identifier, "{a|'_'} {a|'_'|n}*"},
 
+    {Query, "'?'"},
     {Colon, "':'"},
     {Semicolon, "';'"},
     {Comma, "','"},
