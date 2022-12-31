@@ -6,7 +6,7 @@
 namespace mcc {
 
 struct Token {
-  std::string_view expr;
+  std::string_view view;
   u32 trait;
 };
 

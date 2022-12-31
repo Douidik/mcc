@@ -3,6 +3,7 @@
 
 #include "limits.hpp"
 #include "scan/token.hpp"
+#include <forward_list>
 #include <variant>
 
 namespace mcc::ast {
@@ -15,77 +16,81 @@ struct Var {
   Token name;
 };
 
+struct Constant {
+  Token value;
+};
+
 struct Func {
   Token type;
   Token name;
-  u32 args[max::FUNC_ARGS];
+  Expr *args[max::FUNC_ARGS];
 };
 
 // <operation><expression>
 struct UnaryExpr : Expr {
   Token op;
-  u32 expr;
+  Expr *expr;
 };
 
 // <expression[0]><operation><expression[1]>
 struct BinaryExpr : Expr {
   Token op;
-  u32 expr[2];
+  Expr *expr[2];
 };
 
 // '[' <expression> ']'
 struct IndexExpr : Expr {
   Token braces[2];
-  u32 expr;
+  Expr *expr;
 };
 
 // <function_name> '(' <expressions> ',' ... ')'
 struct InvokeExpr : Expr {
   Token braces[2];
   Token commas[max::FUNC_ARGS - 2];
-  u32 args[max::FUNC_ARGS];
-  u32 func;
+  Expr *args[max::FUNC_ARGS];
+  Expr *func;
 };
 
 // <expression> <operation>
 struct PostExpr : Expr {
   Token op;
-  u32 expr;
+  Expr *expr;
 };
 
 // <expression> '?' <expression> ':' <expression>
 struct TernaryExpr : Expr {
   Token query;
   Token colon;
-  u32 expr[3];
+  Expr *expr[3];
 };
 
 // '(' <typename> ')' <expression>
 struct CastExpr : Expr {
   Token braces[2];
   Token type;
-  u32 expr;
+  Expr *expr;
 };
 
 // '(' <expr> ')'
 struct NestedExpr : Expr {
   Token braces[2];
   u32 depth;
-  u32 expr;
+  Expr *expr;
 };
 
-// '{' <head> '}'
+// '{' <stmt>, ... '}'
 struct CompoundStmt : Stmt {
   Token braces[2];
-  u32 head;
+  std::forward_list<Expr *> body;
 };
 
 // <kw> '(' <expr> ')' <head>
 struct CondStmt : Stmt {
   Token kw;
   Token braces[2];
-  u32 expr;
-  u32 head;
+  Expr *expr;
+  Stmt *head;
 };
 
 // <kw> '(' <expr> ')' <head>
@@ -94,22 +99,25 @@ struct LoopStmt : CondStmt {};
 // <kw> <expr>?
 struct JumpStmt : Stmt {
   Token kw;
-  u32 expr;
+  Expr *expr;
 };
 
 // Head definition:
-// <type> <name> ('=' <expression>)? ','? <next_definition>
+// <type> <name> ('=' <expression>)? ';' | ','  <next_definition>
 // Edges definition:
 // <name> ('=' <expression>)? ','? <next_definition>
 struct VarStmt : Stmt {
-  Token type;
-  Token assign;
-  Token comma;
-  u32 var;
-  u32 expr;
-  u32 next_def;
-};
+  struct Def {
+    Var *var;
+    Token assign;
+    Expr *expr;
+    Token comma;
+  };
 
+  Token type;
+  std::forward_list<Def> defs;
+};
+  
 using Node = std::variant<
   std::monostate,
   Var,

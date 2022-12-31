@@ -33,7 +33,10 @@ struct formatter<Regex> {
       format_to(ctx.out(), "{}\n", header);
       format_to(ctx.out(), R"("{}" [shape="none"]{})", start, '\n');
       format_to(ctx.out(), R"("{}" -> "{}" [label="{}"]{})", start, head_ptr, head_state, '\n');
-      format_to(ctx.out(), "{}", *regex.head());
+
+      for (const Node *node : regex.head()->members()) {
+        format_to(ctx.out(), "{}", *node);
+      }
     }
 
     return format_to(ctx.out(), "}}");
@@ -51,51 +54,55 @@ struct formatter<Node> {
     auto shape = node.branch() ? "square" : "circle";
     return format_to(ctx.out(), fmt, ptr(&node), shape, node.index(), '\n');
   }
-
+f
   auto connect(const Node &from, const Node &into, auto &ctx) {
     constexpr std::string_view fmt = R"("{}" -> "{}" [label="{}"]{})";
     format_to(ctx.out(), fmt, ptr(&from), ptr(&into), into.state(), '\n');
   }
 
   constexpr auto
-  format_subgraph(const Node &node, const Node &sub, std::string_view header, char op, auto &ctx) {
+  format_subgraph(const Node &node, Node *sub, std::string_view header, char op, auto &ctx) {
     format_to(ctx.out(), "subgraph cluster_{} {{\n", ptr(&node));
     format_to(ctx.out(), "{}\n", header);
     define(node, ctx);
-    connect(node, sub, ctx);
-    format_to(ctx.out(), "{}", sub);
+    connect(node, *sub, ctx);
+    for (const Node *subnode : sub->members()) {
+      format_to(ctx.out(), "{}", *subnode);
+    }
+    format_to(ctx.out(), "{}", *sub);
     format_to(ctx.out(), "}}\n");
 
-    const Node *end = sub.end();
+    const Node *end = sub->end();
     for (const Node *edge : node.edges()) {
       connect(*end, *edge, ctx);
-      if (edge->index() > node.index()) format_to(ctx.out(), "{}", *edge);
     }
 
     return ctx.out();
   }
 
   constexpr auto format_node(const Node &node, auto &ctx) {
-    define(node, ctx);
     for (const Node *edge : node.edges()) {
       connect(node, *edge, ctx);
-      if (edge->index() > node.index()) format_to(ctx.out(), "{}", *edge);
     }
-    return ctx.out();
+    return define(node, ctx);
   }
 
   constexpr auto format(const Node &node, auto &ctx) {
     switch (node.state().option()) {
+    case Option::None: {
+      return ctx.out();
+    };
+
     case Option::Not: {
       auto [sequence] = std::get<regex::Not>(node.state().variant());
       auto header = R"(style=filled;bgcolor="#FBF3F3")";
-      return format_subgraph(node, *sequence, header, '/', ctx);
+      return format_subgraph(node, sequence, header, '/', ctx);
     } break;
 
     case Option::Dash: {
       auto [sequence] = std::get<regex::Dash>(node.state().variant());
       auto header = R"(style=filled;bgcolor="#F4FDFF")";
-      return format_subgraph(node, *sequence, header, '/', ctx);
+      return format_subgraph(node, sequence, header, '/', ctx);
     } break;
 
     default: {

@@ -17,7 +17,7 @@ public:
   }
   Regex(const char *src) : Regex{std::string_view(src)} {}
 
-  auto head() const -> const Node * {
+  auto head() const -> Node * {
     return m_head;
   }
 
@@ -38,7 +38,7 @@ public:
   }
 
 private:
-  const Node *m_head;
+  Node *m_head;
   Stack m_stack;
   std::string_view m_src;
 };

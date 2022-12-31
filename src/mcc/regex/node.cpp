@@ -26,24 +26,19 @@ auto Node::submit(std::string_view expr, size_t index) const -> size_t {
   return npos();
 }
 
-auto Node::end() const -> const Node * {
-  const Node *end = this;
+auto Node::end() -> Node * {
+  Node *end = this;
 
-  for (const Node *edge : m_edges) {
-    if (edge->index() > index()) end = &std::max(*end, *edge->end());
+  for (Node *member : members()) {
+    end = end->index() > member->index() ? end : member;
   }
 
   return end;
 }
 
 auto Node::members() -> Set {
-  Set set{this};
-
-  for (Node *edge : m_edges) {
-    if (edge->index() > index()) set.merge(edge->members());
-  }
-
-  return set;
+  Set set{};
+  return make_members(set);
 }
 
 auto Node::concat(Node *node) -> Node * {
@@ -74,6 +69,16 @@ auto Node::push(Node *node) -> Node * {
 
 auto Node::insert(Node *node) -> Node * {
   return *m_edges.insert(node).first;
+}
+
+auto Node::make_members(Set &set) -> Set & {
+  set.insert(this);
+
+  for (Node *edge : m_edges) {
+    if (edge->index() > index()) edge->make_members(set);
+  }
+
+  return set;
 }
 
 }  // namespace mcc::regex

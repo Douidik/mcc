@@ -22,10 +22,10 @@ public:
   Node(State state, size_t index);
 
   auto submit(std::string_view expr, size_t index) const -> size_t;
-  auto members() -> Set;
-  auto end() const -> const Node *;
+  auto end() -> Node *;
   auto concat(Node *node) -> Node *;
   auto map(u32 base) -> u32;
+  auto members() -> Set;
   auto merge(Node *node) -> Node *;
   auto push(Node *node) -> Node *;
   auto insert(Node *node) -> Node *;
@@ -58,11 +58,9 @@ public:
     return !m_edges.empty() and max_edge()->index() > m_index;
   }
 
-  auto operator<=>(const Node &rhs) const {
-    return index() <=> rhs.index();
-  }
-  
 private:
+  auto make_members(Set &set) -> Set &;
+
   State m_state;
   u32 m_index;
   Set m_edges;

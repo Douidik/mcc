@@ -20,8 +20,8 @@ static auto match_tokens(std::string_view src, const std::vector<Token> &&tokens
       return testing::AssertionFailure() << token_trait << " != " << expected_trait;
     }
 
-    if (!(token.trait & CsKeyword) && token.expr != expected.expr) {
-      return testing::AssertionFailure() << "'" << token.expr << "' != '" << expected.expr << "'";
+    if (!(token.trait & CsKeyword) && token.view != expected.view) {
+      return testing::AssertionFailure() << "'" << token.view << "' != '" << expected.view << "'";
     }
   }
 

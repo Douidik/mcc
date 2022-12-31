@@ -9,16 +9,16 @@ namespace mcc::trait {
 // Trait Layout
 // C: Class bit
 // G: Group bit
-// N: Disriminant bit
-// Each trait is 32 bits long {Class: 8 bits, Group: 11 bits, N: 13 bits}
-// C|C|C|C|C|C|C|C|G|G|G|G|G|G|G|G|G|G|G|N|N|N|N|N|N|N|N|N|N|N|N|N
+// T: Type bit
+// Each trait is 32 bits long {Class: 8 bits, Group: 11 bits, T: 13 bits}
+// C|C|C|C|C|C|C|C|G|G|G|G|G|G|G|G|G|G|G|T|T|T|T|T|T|T|T|T|T|T|T|T
 
 constexpr u32 TRAIT_SIZE = 32;
 constexpr u32 CLASS_SIZE = 8;
 constexpr u32 GROUP_SIZE = 11;
-constexpr u32 N_SIZE = 13;
+constexpr u32 TYPE_SIZE = 13;
 
-static_assert(CLASS_SIZE + GROUP_SIZE + N_SIZE == TRAIT_SIZE);
+static_assert(CLASS_SIZE + GROUP_SIZE + TYPE_SIZE == TRAIT_SIZE);
 
 template<u32 N>
 constexpr auto define_class() -> u32 {
@@ -32,9 +32,14 @@ constexpr auto define_group() -> u32 {
   return 1 << (TRAIT_SIZE - CLASS_SIZE - GROUP_SIZE + N);
 }
 
-template<u32 C, u32 G, u32 N>
-constexpr auto define() -> u32 {
-  return N | C | G;
+// template<u32 N>
+// constexpr auto define_type() -> u32 {
+// }
+
+template<u32 C, u32 G, u32 T>
+constexpr auto define_type() -> u32 {
+  static_assert(T < TYPE_SIZE);
+  return C | G | (1 << T);
 }
 
 enum TraitEnum : u32 {
@@ -62,107 +67,122 @@ enum TraitEnum : u32 {
   GpBinaryOp = define_group<9>(),
   GpBracket = define_group<10>(),
 
-  Blank = define<CsMeta, GpNone, 1>(),
-  End = define<CsMeta, GpNone, 2>(),
-  CommentSL = define<CsMeta, GpNone, 3>(),
-  CommentML = define<CsMeta, GpNone, 4>(),
-  Directive = define<CsMeta, GpNone, 5>(),
+  Blank = define_type<CsMeta, GpNone, 1>(),
+  End = define_type<CsMeta, GpNone, 2>(),
+  CommentSL = define_type<CsMeta, GpNone, 3>(),
+  CommentML = define_type<CsMeta, GpNone, 4>(),
+  Directive = define_type<CsMeta, GpNone, 5>(),
 
-  Sizeof = define<CsKeyword | CsOperator, GpAccess, 0>(),
-  Star = define<CsPunctuator | CsKeyword, GpAccess | GpModifier | GpArithmetic | GpBinaryOp, 0>(),
-  Ampersand = define<CsOperator, GpAccess | GpBin | GpBinaryOp, 0>(),
+  Sizeof = define_type<CsKeyword | CsOperator, GpAccess, 0>(),
+  Star =
+    define_type<CsPunctuator | CsKeyword, GpAccess | GpModifier | GpArithmetic | GpBinaryOp, 0>(),
+  Ampersand = define_type<CsOperator, GpAccess | GpBin | GpBinaryOp, 0>(),
 
-  KwAuto = define<CsKeyword, GpType, 0>(),
-  KwDouble = define<CsKeyword, GpType, 1>(),
-  KwChar = define<CsKeyword, GpType, 2>(),
-  KwFloat = define<CsKeyword, GpType, 3>(),
-  KwInt = define<CsKeyword, GpType, 4>(),
-  KwVoid = define<CsKeyword, GpType, 5>(),
-  KwLong = define<CsKeyword, GpType | GpModifier, 0>(),
-  KwShort = define<CsKeyword, GpType | GpModifier, 1>(),
-  KwEnum = define<CsKeyword, GpDefine, 0>(),
-  KwTypedef = define<CsKeyword, GpDefine, 1>(),
-  KwUnion = define<CsKeyword, GpDefine, 2>(),
-  KwStruct = define<CsKeyword, GpDefine, 3>(),
-  KwVolatile = define<CsKeyword, GpModifier, 0>(),
-  KwConst = define<CsKeyword, GpModifier, 1>(),
-  KwExtern = define<CsKeyword, GpModifier, 2>(),
-  KwRegister = define<CsKeyword, GpModifier, 3>(),
-  KwStatic = define<CsKeyword, GpModifier, 4>(),
-  KwSigned = define<CsKeyword, GpModifier, 5>(),
-  KwUnsigned = define<CsKeyword, GpModifier, 6>(),
+  KwAuto = define_type<CsKeyword, GpType, 0>(),
+  KwDouble = define_type<CsKeyword, GpType, 1>(),
+  KwChar = define_type<CsKeyword, GpType, 2>(),
+  KwFloat = define_type<CsKeyword, GpType, 3>(),
+  KwInt = define_type<CsKeyword, GpType, 4>(),
+  KwVoid = define_type<CsKeyword, GpType, 5>(),
+  KwLong = define_type<CsKeyword, GpType | GpModifier, 0>(),
+  KwShort = define_type<CsKeyword, GpType | GpModifier, 1>(),
+  KwEnum = define_type<CsKeyword, GpDefine, 0>(),
+  KwTypedef = define_type<CsKeyword, GpDefine, 1>(),
+  KwUnion = define_type<CsKeyword, GpDefine, 2>(),
+  KwStruct = define_type<CsKeyword, GpDefine, 3>(),
+  KwVolatile = define_type<CsKeyword, GpModifier, 0>(),
+  KwConst = define_type<CsKeyword, GpModifier, 1>(),
+  KwExtern = define_type<CsKeyword, GpModifier, 2>(),
+  KwRegister = define_type<CsKeyword, GpModifier, 3>(),
+  KwStatic = define_type<CsKeyword, GpModifier, 4>(),
+  KwSigned = define_type<CsKeyword, GpModifier, 5>(),
+  KwUnsigned = define_type<CsKeyword, GpModifier, 6>(),
   KwPointer = Star,
-  KwBreak = define<CsKeyword, GpFlow, 0>(),
-  KwCase = define<CsKeyword, GpFlow, 1>(),
-  KwContinue = define<CsKeyword, GpFlow, 2>(),
-  KwDefault = define<CsKeyword, GpFlow, 3>(),
-  KwDo = define<CsKeyword, GpFlow, 4>(),
-  KwElse = define<CsKeyword, GpFlow, 5>(),
-  KwFor = define<CsKeyword, GpFlow, 6>(),
-  KwGoto = define<CsKeyword, GpFlow, 7>(),
-  KwIf = define<CsKeyword, GpFlow, 8>(),
-  KwReturn = define<CsKeyword, GpFlow, 9>(),
-  KwSwitch = define<CsKeyword, GpFlow, 10>(),
-  KwWhile = define<CsKeyword, GpFlow, 11>(),
+  KwBreak = define_type<CsKeyword, GpFlow, 0>(),
+  KwCase = define_type<CsKeyword, GpFlow, 1>(),
+  KwContinue = define_type<CsKeyword, GpFlow, 2>(),
+  KwDefault = define_type<CsKeyword, GpFlow, 3>(),
+  KwDo = define_type<CsKeyword, GpFlow, 4>(),
+  KwElse = define_type<CsKeyword, GpFlow, 5>(),
+  KwFor = define_type<CsKeyword, GpFlow, 6>(),
+  KwGoto = define_type<CsKeyword, GpFlow, 7>(),
+  KwIf = define_type<CsKeyword, GpFlow, 8>(),
+  KwReturn = define_type<CsKeyword, GpFlow, 9>(),
+  KwSwitch = define_type<CsKeyword, GpFlow, 10>(),
+  KwWhile = define_type<CsKeyword, GpFlow, 11>(),
 
-  Identifier = define<CsIdentifier, GpNone, 0>(),
+  Identifier = define_type<CsIdentifier, GpNone, 0>(),
 
-  Float = define<CsConstant, GpNone, 0>(),
-  FloatBin = define<CsConstant, GpNone, 0>(),
-  FloatHex = define<CsConstant, GpNone, 0>(),
-  Integer = define<CsConstant, GpNone, 1>(),
-  String = define<CsConstant, GpNone, 2>(),
-  Char = define<CsConstant, GpNone, 3>(),
+  Float = define_type<CsConstant, GpNone, 0>(),
+  Integer = define_type<CsConstant, GpNone, 1>(),
+  String = define_type<CsConstant, GpNone, 2>(),
+  Char = define_type<CsConstant, GpNone, 3>(),
 
-  Query = define<CsOperator, GpFlow, 0>(),
-  Increment = define<CsOperator, GpNone, 0>(),
-  Decrement = define<CsOperator, GpNone, 1>(),
-  CurlyBegin = define<CsOperator, GpBracket, 0>(),
-  CurlyClose = define<CsOperator, GpBracket, 1>(),
-  ParenBegin = define<CsOperator, GpBracket, 2>(),
-  ParenClose = define<CsOperator, GpBracket, 3>(),
-  CrochetBegin = define<CsOperator, GpBracket, 4>(),
-  CrochetClose = define<CsOperator, GpBracket, 5>(),
-  Assign = define<CsOperator, GpBinaryOp, 0>(),
-  Not = define<CsOperator, GpLogic, 0>(),
-  And = define<CsOperator, GpLogic | GpBinaryOp, 0>(),
-  Or = define<CsOperator, GpLogic | GpBinaryOp, 1>(),
-  Add = define<CsOperator, GpArithmetic | GpBinaryOp, 0>(),
-  Sub = define<CsOperator, GpArithmetic | GpBinaryOp, 1>(),
+  Query = define_type<CsOperator, GpFlow, 0>(),
+  Increment = define_type<CsOperator, GpNone, 0>(),
+  Decrement = define_type<CsOperator, GpNone, 1>(),
+  CurlyBegin = define_type<CsOperator, GpBracket, 0>(),
+  CurlyClose = define_type<CsOperator, GpBracket, 1>(),
+  ParenBegin = define_type<CsOperator, GpBracket, 2>(),
+  ParenClose = define_type<CsOperator, GpBracket, 3>(),
+  CrochetBegin = define_type<CsOperator, GpBracket, 4>(),
+  CrochetClose = define_type<CsOperator, GpBracket, 5>(),
+  Assign = define_type<CsOperator, GpBinaryOp, 0>(),
+  Not = define_type<CsOperator, GpLogic, 0>(),
+  And = define_type<CsOperator, GpLogic | GpBinaryOp, 0>(),
+  Or = define_type<CsOperator, GpLogic | GpBinaryOp, 1>(),
+  Add = define_type<CsOperator, GpArithmetic | GpBinaryOp, 0>(),
+  Sub = define_type<CsOperator, GpArithmetic | GpBinaryOp, 1>(),
   Mul = Star,
-  Div = define<CsOperator, GpArithmetic | GpBinaryOp, 2>(),
-  Mod = define<CsOperator, GpArithmetic | GpBinaryOp, 3>(),
-  BinNot = define<CsOperator, GpBin, 0>(),
+  Div = define_type<CsOperator, GpArithmetic | GpBinaryOp, 2>(),
+  Mod = define_type<CsOperator, GpArithmetic | GpBinaryOp, 3>(),
+  BinNot = define_type<CsOperator, GpBin, 0>(),
   BinAnd = Ampersand,
-  BinOr = define<CsOperator, GpBin | GpBinaryOp, 0>(),
-  BinXor = define<CsOperator, GpBin | GpBinaryOp, 1>(),
-  BinShiftL = define<CsOperator, GpBin | GpBinaryOp, 2>(),
-  BinShiftR = define<CsOperator, GpBin | GpBinaryOp, 3>(),
-  Equal = define<CsOperator, GpCompare | GpBinaryOp, 0>(),
-  NotEq = define<CsOperator, GpCompare | GpBinaryOp, 1>(),
-  Less = define<CsOperator, GpCompare | GpBinaryOp, 2>(),
-  Greater = define<CsOperator, GpCompare | GpBinaryOp, 3>(),
-  LessEq = define<CsOperator, GpCompare | GpBinaryOp, 4>(),
-  GreaterEq = define<CsOperator, GpCompare | GpBinaryOp, 5>(),
+  BinOr = define_type<CsOperator, GpBin | GpBinaryOp, 0>(),
+  BinXor = define_type<CsOperator, GpBin | GpBinaryOp, 1>(),
+  BinShiftL = define_type<CsOperator, GpBin | GpBinaryOp, 2>(),
+  BinShiftR = define_type<CsOperator, GpBin | GpBinaryOp, 3>(),
+  Equal = define_type<CsOperator, GpCompare | GpBinaryOp, 0>(),
+  NotEq = define_type<CsOperator, GpCompare | GpBinaryOp, 1>(),
+  Less = define_type<CsOperator, GpCompare | GpBinaryOp, 2>(),
+  Greater = define_type<CsOperator, GpCompare | GpBinaryOp, 3>(),
+  LessEq = define_type<CsOperator, GpCompare | GpBinaryOp, 4>(),
+  GreaterEq = define_type<CsOperator, GpCompare | GpBinaryOp, 5>(),
   Deref = Star,
   Address = Ampersand,
-  Dot = define<CsOperator, GpAccess, 1>(),
-  Arrow = define<CsOperator, GpAccess, 2>(),
-  Comma = define<CsPunctuator, GpNone, 1>(),
-  Colon = define<CsPunctuator, GpNone, 2>(),
-  Semicolon = define<CsPunctuator, GpNone, 3>(),
+  Dot = define_type<CsOperator, GpAccess, 1>(),
+  Arrow = define_type<CsOperator, GpAccess, 2>(),
+  Comma = define_type<CsPunctuator, GpNone, 1>(),
+  Colon = define_type<CsPunctuator, GpNone, 2>(),
+  Semicolon = define_type<CsPunctuator, GpNone, 3>(),
 
-  None = define<CsMeta | CsCatch, GpNone, 0>(),
-  BadComment = define<CsMeta | CsCatch, None, 1>(),
-  BadString = define<CsMeta | CsCatch, CsConstant, 0>(),
-  BadChar = define<CsMeta | CsCatch, CsConstant, 1>(),
-  EmptyChar = define<CsMeta | CsCatch, CsConstant, 2>(),
+  None = define_type<CsMeta | CsCatch, GpNone, 0>(),
+  BadComment = define_type<CsMeta | CsCatch, None, 1>(),
+  BadString = define_type<CsMeta | CsCatch, CsConstant, 0>(),
+  BadChar = define_type<CsMeta | CsCatch, CsConstant, 1>(),
+  EmptyChar = define_type<CsMeta | CsCatch, CsConstant, 2>(),
 };
 
 }  // namespace mcc::trait
 
 namespace mcc {
 using namespace trait;
+
+constexpr auto trait_class(u32 trait) -> u32 {
+  return trait >> GROUP_SIZE >> TYPE_SIZE;
+}
+
+constexpr auto trait_group(u32 trait) -> u32 {
+  return trait << CLASS_SIZE >> (CLASS_SIZE * 2) >> TYPE_SIZE;
+}
+
+constexpr auto trait_type(u32 trait) -> u32 {
+  return trait & ((u32)-1 >> CLASS_SIZE >> GROUP_SIZE);
+}
+
+constexpr auto trait_decompose(u32 trait) -> std::tuple<u32, u32, u32> {
+  return {trait_class(trait), trait_group(trait), trait_type(trait)};
+}
 
 constexpr auto trait_name(u32 trait) -> std::string_view {
   switch (trait) {
