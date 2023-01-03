@@ -2,14 +2,9 @@
 #define MCC_AST_PARSER_HPP
 
 #include "ast.hpp"
-#include "scan/token.hpp"
-#include <optional>
-#include <queue>
-#include <stack>
-
-namespace mcc {
-class Lexer;
-}  // namespace mcc
+#include "code_exception.hpp"
+#include "scan/lexer.hpp"
+#include <deque>
 
 namespace mcc::ast {
 
@@ -19,34 +14,51 @@ public:
   auto parse() -> Node *;
 
 private:
-  auto parse_type(Token &token) -> Token &;
-  auto parse_def(Token type) -> Node *;
-  auto parse_var(Token type, Token name, Token assign) -> Node *;
-  auto parse_func(Token type, Token name, Token braces) -> Node *;
+  auto parse_type() -> Type;
+  auto parse_def() -> Node *;
+  auto parse_var(Type type, Token name) -> struct VarStmt *;
+  auto parse_func(Type type, Token name, Token brace) -> struct FuncStmt *;
 
-  auto parse_expr() -> Node *;
+  auto parse_expr(struct Expr *prev = {}) -> struct Expr *;
 
   auto next_token() -> Token;
+  auto peek_token() -> Token;
+  auto maybe_token(u32 wanted = 0) -> Token;
+  auto expect_token(u32 wanted = 0) -> Token;
 
-  auto maybe_token(u32 trait = 0) -> std::optional<Token>;
-  auto expect_token(u32 trait = 0) -> Token;
-  auto peek_token(u32 trait = 0) -> Token;
+  auto unexpected(Token token, u32 expected) const -> Exception {
+    std::string report  = "expected token of type(s) |";
+    auto [view, trait]  = token;
+    auto [cs, gp, type] = trait_decompose(expected);
 
-  auto peek_pop() -> Token;
+    auto report_push = [&report](std::string_view fmt, auto... args) {
+      return fmt::format_to(std::back_inserter(report), fmt::runtime(fmt), args...);
+    };
 
-  auto unexpected(std::string_view desc, u32 have, u32 expected) -> Exception;
-  auto exception(std::string_view desc, Token token) -> Exception;
+    if (type != 0 and !(trait & type)) {
+      for (u32 i = 0, mask = 1; i < TYPE_SIZE; i++, mask <<= 1) {
+        if (mask & expected) report_push("{}|", trait_type_desc(cs | gp | mask));
+      }
+    } else if (gp != 0 and !(trait & gp)) {
+      for (u32 i = 0, mask = 1; i < GROUP_SIZE; i++, mask <<= 1) {
+        if (mask & expected) report_push("{}|", trait_group_desc(gp));
+      }
+    } else if (cs != 0 and !(trait & cs)) {
+      for (u32 i = 0, mask = 1; i < CLASS_SIZE; i++, mask <<= 1) {
+        if (mask & expected) report_push("{}|", trait_class_desc(cs));
+      }
+    }
 
-  // template<typename T>
-  // auto ast(u32 n) -> const T & {
-  //   throw u32{};
-  //   // return m_ast.nodes().front();
-  // }
+    return code_exception("parser exception", report, m_lexer.src(), token);
+  }
+
+  auto exception(std::string_view desc, Token token, auto... args) const -> Exception {
+    return code_exception("parser exception", desc, m_lexer.src(), token, args...);
+  }
 
   Ast &m_ast;
   Lexer &m_lexer;
-  std::stack<u32> m_expr_stack;
-  std::queue<Token> m_peek_queue;
+  std::deque<Token> m_peek_queue;
 };
 
 };  // namespace mcc::ast

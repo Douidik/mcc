@@ -35,6 +35,8 @@ namespace mcc::max {
 //TODO: Define all the C standard limitations
 constexpr u32 FUNC_ARGS = 31;
 constexpr u32 EXPR_NESTED = 32;
+constexpr u32 ENUM_DECLS = 127;
+constexpr u32 STRUCT_MEMBERS = 127;
 
 // constexpr u32 COMPOUNDS_NESTING = 15;
 // constexpr u32 COND_NESTING = 8;

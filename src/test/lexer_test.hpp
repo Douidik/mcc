@@ -15,8 +15,8 @@ static auto match_tokens(std::string_view src, const std::vector<Token> &&tokens
     auto token = lexer.tokenize();
 
     if (token.trait != expected.trait) {
-      auto token_trait = trait_name(token.trait);
-      auto expected_trait = trait_name(expected.trait);
+      auto token_trait = trait_type_desc(token.trait);
+      auto expected_trait = trait_type_desc(expected.trait);
       return testing::AssertionFailure() << token_trait << " != " << expected_trait;
     }
 

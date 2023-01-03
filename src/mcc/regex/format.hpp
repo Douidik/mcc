@@ -17,7 +17,7 @@ struct formatter<Regex> {
 
   constexpr auto parse(format_parse_context &ctx) {
     auto end = std::find(ctx.begin(), ctx.end(), '}');
-    name = std::string_view{ctx.begin(), end};
+    name     = std::string_view{ctx.begin(), end};
     return end;
   }
 
@@ -25,10 +25,10 @@ struct formatter<Regex> {
     format_to(ctx.out(), "strict digraph {{\n");
 
     if (regex.head()) {
-      auto header = R"(rankdir=LR;bgcolor="#F9F9F9";compound=true)";
-      auto head_ptr = ptr(regex.head());
+      auto header     = R"(rankdir=LR;bgcolor="#F9F9F9";compound=true)";
+      auto head_ptr   = ptr(regex.head());
       auto head_state = regex.head()->state();
-      auto start = Raw{name != "" ? name : regex.src(), 2};
+      auto start      = Raw{name != "" ? name : regex.src(), 2};
 
       format_to(ctx.out(), "{}\n", header);
       format_to(ctx.out(), R"("{}" [shape="none"]{})", start, '\n');
@@ -51,10 +51,10 @@ struct formatter<Node> {
 
   auto define(const Node &node, auto &ctx) {
     constexpr auto fmt = R"("{}" [shape="{}",label="{}"]{})";
-    auto shape = node.branch() ? "square" : "circle";
+    auto shape         = node.branch() ? "square" : "circle";
     return format_to(ctx.out(), fmt, ptr(&node), shape, node.index(), '\n');
   }
-f
+
   auto connect(const Node &from, const Node &into, auto &ctx) {
     constexpr std::string_view fmt = R"("{}" -> "{}" [label="{}"]{})";
     format_to(ctx.out(), fmt, ptr(&from), ptr(&into), into.state(), '\n');
@@ -95,13 +95,13 @@ f
 
     case Option::Not: {
       auto [sequence] = std::get<regex::Not>(node.state().variant());
-      auto header = R"(style=filled;bgcolor="#FBF3F3")";
+      auto header     = R"(style=filled;bgcolor="#FBF3F3")";
       return format_subgraph(node, sequence, header, '/', ctx);
     } break;
 
     case Option::Dash: {
       auto [sequence] = std::get<regex::Dash>(node.state().variant());
-      auto header = R"(style=filled;bgcolor="#F4FDFF")";
+      auto header     = R"(style=filled;bgcolor="#F4FDFF")";
       return format_subgraph(node, sequence, header, '/', ctx);
     } break;
 

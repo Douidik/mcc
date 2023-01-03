@@ -3,13 +3,14 @@
 
 namespace mcc {
 
+  // TODO: support multiline code exceptions
 auto code_exception(std::string_view name, std::string_view desc, std::string_view src, Token token)
   -> Exception {
-  auto line = std::count(src.begin(), token.expr.begin(), '\n');
-  auto rbegin = std::find(token.expr.rend(), src.rend(), '\n');
+  auto line = std::count(src.begin(), token.view.begin(), '\n');
+  auto rbegin = std::find(token.view.rend(), src.rend(), '\n');
   auto begin = std::max(rbegin.base(), src.begin());
-  auto end = std::find(token.expr.end(), src.end(), '\n');
-  auto cursor = token.expr.begin() - begin + 1;
+  auto end = std::find(token.view.end(), src.end(), '\n');
+  auto cursor = token.view.begin() - begin + 1;
 
   return Exception{
     "source code exception",
@@ -22,7 +23,7 @@ auto code_exception(std::string_view name, std::string_view desc, std::string_vi
     "",
     cursor,
     "",
-    token.expr.size(),
+    token.view.size(),
     desc,
   };
 }
