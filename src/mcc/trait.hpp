@@ -3,38 +3,31 @@
 
 #include "mcc.hpp"
 
-// A trait should always be typed as u32 !
 namespace mcc::trait {
 
-// Trait Layout
-// C: Class bit
-// G: Group bit
-// T: Type bit
-// Each trait is 32 bits long {Class: 8 bits, Group: 11 bits, T: 13 bits}
-// C|C|C|C|C|C|C|C|G|G|G|G|G|G|G|G|G|G|G|T|T|T|T|T|T|T|T|T|T|T|T|T
-
 constexpr u32 TRAIT_SIZE = 32;
-
-constexpr u32 CLASS_SIZE = 8;
+constexpr u32 OK_SIZE    = 1;
+constexpr u32 CLASS_SIZE = 7;
 constexpr u32 GROUP_SIZE = 11;
 constexpr u32 TYPE_SIZE  = 13;
 
-constexpr u32 CLASS_MASK = 0b1111'1111'0000'0000'0000'0000'0000'0000;
+constexpr u32 OK_MASK    = 0b1000'0000'0000'0000'0000'0000'0000'0000;
+constexpr u32 CLASS_MASK = 0b0111'1111'0000'0000'0000'0000'0000'0000;
 constexpr u32 GROUP_MASK = 0b0000'0000'1111'1111'1110'0000'0000'0000;
 constexpr u32 TYPE_MASK  = 0b0000'0000'0000'0000'0001'1111'1111'1111;
 
-static_assert(CLASS_SIZE + GROUP_SIZE + TYPE_SIZE == TRAIT_SIZE);
+static_assert(OK_SIZE + CLASS_SIZE + GROUP_SIZE + TYPE_SIZE == TRAIT_SIZE);
 
 template<u32 N>
 constexpr auto define_class() -> u32 {
   static_assert(N < CLASS_SIZE);
-  return 1 << (TRAIT_SIZE - CLASS_SIZE + N);
+  return 1 << TYPE_SIZE << GROUP_SIZE << N;
 }
 
 template<u32 N>
 constexpr auto define_group() -> u32 {
   static_assert(N < GROUP_SIZE);
-  return 1 << (TRAIT_SIZE - CLASS_SIZE - GROUP_SIZE + N);
+  return 1 << TYPE_SIZE << N;
 }
 
 template<u32 C, u32 G, u32 T>
@@ -48,17 +41,16 @@ enum TraitEnum : u32 {
 
   CsMeta       = define_class<0>(),
   CsKeyword    = define_class<1>(),
-  CsIdentifier = define_class<2>(),
-  CsConstant   = define_class<3>(),
-  CsString     = define_class<4>(),
-  CsOperator   = define_class<5>(),
-  CsPunctuator = define_class<6>(),
-  CsCatch      = define_class<7>(),
+  CsConstant   = define_class<2>(),
+  CsIdentifier = define_class<3>(),
+  CsOperator   = define_class<4>(),
+  CsPunctuator = define_class<5>(),
+  CsCatch      = define_class<6>(),
 
   GpNone       = 0,
   GpDefine     = define_group<0>(),
   GpFlow       = define_group<1>(),
-  GpType       = define_group<2>(),
+  GpPrimitive  = define_group<2>(),
   GpModifier   = define_group<3>(),
   GpArithmetic = define_group<4>(),
   GpLogic      = define_group<5>(),
@@ -79,12 +71,12 @@ enum TraitEnum : u32 {
   Star =
     define_type<CsPunctuator | CsKeyword, GpAccess | GpModifier | GpArithmetic | GpBinaryOp, 0>(),
 
-  KwAuto     = define_type<CsKeyword, GpType, 0>(),
-  KwDouble   = define_type<CsKeyword, GpType, 1>(),
-  KwChar     = define_type<CsKeyword, GpType, 2>(),
-  KwFloat    = define_type<CsKeyword, GpType, 3>(),
-  KwInt      = define_type<CsKeyword, GpType, 4>(),
-  KwVoid     = define_type<CsKeyword, GpType, 5>(),
+  KwAuto     = define_type<CsKeyword, GpPrimitive, 0>(),
+  KwDouble   = define_type<CsKeyword, GpPrimitive, 1>(),
+  KwChar     = define_type<CsKeyword, GpPrimitive, 2>(),
+  KwFloat    = define_type<CsKeyword, GpPrimitive, 3>(),
+  KwInt      = define_type<CsKeyword, GpPrimitive, 4>(),
+  KwVoid     = define_type<CsKeyword, GpPrimitive, 5>(),
   KwLong     = define_type<CsKeyword, GpModifier, 0>(),
   KwShort    = define_type<CsKeyword, GpModifier, 1>(),
   KwVolatile = define_type<CsKeyword, GpModifier, 2>(),
@@ -191,7 +183,6 @@ constexpr auto trait_class_desc(u32 group) -> std::string_view {
   case CsKeyword: return "Class-Keyword";
   case CsIdentifier: return "Class-Identifier";
   case CsConstant: return "Class-Constant";
-  case CsString: return "Class-String";
   case CsOperator: return "Class-Operator";
   case CsPunctuator: return "Class-Punctuator";
   case CsCatch: return "Class-Catch";
@@ -204,7 +195,7 @@ constexpr auto trait_group_desc(u32 group) -> std::string_view {
   case GpNone: return "Group-None";
   case GpDefine: return "Group-Define";
   case GpFlow: return "Group-Flow";
-  case GpType: return "Group-Type";
+  case GpPrimitive: return "Group-Type";
   case GpModifier: return "Group-Modifier";
   case GpArithmetic: return "Group-Arithmetic";
   case GpLogic: return "Group-Logic";
@@ -307,11 +298,11 @@ constexpr auto trait_type_desc(u32 trait) -> std::string_view {
 
 constexpr auto trait_catch_desc(u32 trait) -> std::string_view {
   switch (trait) {
-  case None: return "Token not recognized";
-  case BadComment: return "Umatched comment delimiter, missing <*/> ending delimiter";
-  case BadString: return "Umatched string delimiter, missing <\"> ending delimiter";
-  case BadChar: return "Umatched character delimiter, missing <'> ending delimiter";
-  case EmptyChar: return "Empty character constant";
+  case None: return "token not recognized";
+  case BadComment: return "umatched comment delimiter, missing <*/> ending delimiter";
+  case BadString: return "umatched string delimiter, missing <\"> ending delimiter";
+  case BadChar: return "umatched character delimiter, missing <'> ending delimiter";
+  case EmptyChar: return "empty character constant";
   }
 
   return "?";

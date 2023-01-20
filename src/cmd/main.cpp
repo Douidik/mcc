@@ -1,8 +1,7 @@
-#include "scan/lexer.hpp"
-#include <ast/ast.hpp>
-#include <ast/parser.hpp>
+#include <ast.hpp>
 #include <fmt/format.h>
 #include <fstream>
+#include <parser.hpp>
 
 using namespace mcc::literals;
 
@@ -162,9 +161,8 @@ int cmd_var(int argc, const char **argv, const char *prefix)
 )";
 
 void parse_source() {
-  Ast ast{};
-  Lexer lexer{SOURCE};
-  ast::Parser{ast, lexer}.parse();
+  Parser parser{Lexer(mcc::SOURCE, syntax_ansi())};
+  Ast &ast = parser.parse();
 }
 
 }  // namespace mcc

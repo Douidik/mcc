@@ -20,8 +20,8 @@ static auto match_tokens(std::string_view src, const std::vector<Token> &&tokens
       return testing::AssertionFailure() << token_trait << " != " << expected_trait;
     }
 
-    if (!(token.trait & CsKeyword) && token.view != expected.view) {
-      return testing::AssertionFailure() << "'" << token.view << "' != '" << expected.view << "'";
+    if (!(token.trait & CsKeyword) && token.src != expected.src) {
+      return testing::AssertionFailure() << "'" << token.src << "' != '" << expected.src << "'";
     }
   }
 
@@ -107,8 +107,8 @@ it's very embarrassing            \
 )",
       CommentSL});
 
-  // NOTE: Seems the compiler is not interpreting \ at the end of raw-string well, we can't test
-  // Malformed escaped single line comments
+  // NOTE: Seems the compiler is not interpreting well \ at the end of raw-string well
+  // we can't test malformed escaped single line comments
   //   EXPECT_TOKENS(
   //     R"(
   // // This multiline comment is malformed \<Should be spaces !!!>
